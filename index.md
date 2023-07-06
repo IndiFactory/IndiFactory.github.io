@@ -28,7 +28,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 from psutil import virtual_memory
 import torch
 
-# colab-GPU 사용 확인
+
 gpu_info = !nvidia-smi
 gpu_info = '\n'.join(gpu_info)
 if gpu_info.find('failed') >= 0:
@@ -36,11 +36,11 @@ if gpu_info.find('failed') >= 0:
 else:
   print(gpu_info)
 
-# RAM 사용량 체크
+
 ram_gb = virtual_memory().total / 1e9
 print('{:.1f} gigabytes of available RAM\n'.format(ram_gb))
 
-# pytorch-GPU 연결 확인
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print('학습을 진행하는 기기:',device)
 
@@ -139,7 +139,7 @@ class pix2pix_Generator(nn.Module): #역전파,순전파 사용가능
         nn.ConvTranspose2d(64,2,kernel_size=4,stride=2,padding=1),
         nn.Tanh()
     )
-##여기까지가 그냥 __init__ 생성자
+
   def forward(self,x):
     input_layer = self.input_layer(x)
     encoder_1=self.encoder_1(input_layer)
@@ -169,13 +169,12 @@ class pix2pix_Generator(nn.Module): #역전파,순전파 사용가능
     return output_layer
     
     
-    
-    class pix2pix_Discriminator(nn.Module):
-  def __init__(self): #nn.Module 안에서 모듈이 있기 때문에 불러와야한다.
-    super().__init__() #nn.Module의 init을 실행해주겠다. (마더)
+class pix2pix_Discriminator(nn.Module):
+  def __init__(self): 
+    super().__init__()
 
     self.model = nn.Sequential(
-        nn.Conv2d(3,64, kernel_size = 4, stride = 2, padding=1, bias=False),#이미지를 받기 때문에 3채널을 다 받는다.
+        nn.Conv2d(3,64, kernel_size = 4, stride = 2, padding=1, bias=False),
         nn.LeakyReLU(0.2,True),
 
         nn.Conv2d(64,128,kernel_size = 4, stride=2, padding=1, bias=False),
@@ -190,7 +189,7 @@ class pix2pix_Generator(nn.Module): #역전파,순전파 사용가능
         nn.BatchNorm2d(512),
         nn.LeakyReLU(0.2,True),
 
-        nn.Conv2d(512,1,kernel_size = 4, stride = 2, padding=1, bias=False) # 디스크리미네이션은 해당 이미지가 참 거짓인지 출력하는거라 output이 1채널이다.
+        nn.Conv2d(512,1,kernel_size = 4, stride = 2, padding=1, bias=False) 
 
     )
   def forward(self, x):
@@ -247,10 +246,10 @@ def lab_to_rgb(L, ab):
   ab = ab*110
 
   Lab = torch.cat([L,ab],dim=1)
-  # [배치사이즈, 채널(3), 256,256]
+
 
   Lab = torch.cat([L,ab],dim=1).permute(0,2,3,1).cpu().numpy()
-  # [배치 사이즈, 256,256, 채널]
+
 
   rgb_imgs = []
   for img in Lab:
@@ -260,14 +259,14 @@ def lab_to_rgb(L, ab):
   return np.stack(rgb_imgs, axis = 0)
   
   
-  # Generator 생성 후 초기화
+
 
 model_generator = initialize_model(pix2pix_Generator())
 
 #Discriminator 생성 후 초기화
 model_discriminator = initialize_model(pix2pix_Discriminator())
 
-# 모델을 gpu로 넘기기
+
 model_generator.to(device)
 model_discriminator.to(device)
 
@@ -276,14 +275,14 @@ criterion = GANLoss().to(device)
 #L1 loss 선언
 L1 = nn.L1Loss()
 
-# generator의 optimizer 선언하기
+
 optimizer_generator = optim.Adam(model_generator.parameters(), lr = 2e-4, betas=(0.5,0.999))
-# discriminator의 optimizer 선언하기
+
 optimizer_discriminator = optim.Adam(model_discriminator.parameters(), lr = 2e-4, betas=(0.5,0.999))
 
-# epoch 선언하기
+
 epochs = 100  #1000번이 좋다.
-# 실제 훈련 시작. 에포크: 전체 트레이닝 셋이 한번씩 다 도는것 100이면 전체 데이터가 100번돈다
+
 for e  in range(epochs):
   for index, data in enumerate(tqdm(dataloader_train)):
 
